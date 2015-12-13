@@ -7,10 +7,10 @@ public class Atom {
     private String atomName;
     private char atomResiduum;
     private char atomChain;
-    private int atomRedisuumIndex;
-    private double coordX;
-    private double coordY;
-    private double coordZ;
+    private int atomResidueIndex;
+    private float coordX;
+    private float coordY;
+    private float coordZ;
     // no marker field
     private double atomBeta;
     private char atomType;
@@ -27,10 +27,10 @@ public class Atom {
         this.atomName = s[2];
         this.atomResiduum = s[3].charAt(0);
         this.atomChain = s[4].charAt(0);
-        this.atomRedisuumIndex = Integer.parseInt(s[5]);
-        this.coordX = Double.parseDouble(s[6]);
-        this.coordY = Double.parseDouble(s[7]);
-        this.coordZ = Double.parseDouble(s[8]);
+        this.atomResidueIndex = Integer.parseInt(s[5]);
+        this.coordX = Float.parseFloat(s[6]);
+        this.coordY = Float.parseFloat(s[7]);
+        this.coordZ = Float.parseFloat(s[8]);
         // no marker field (index 9)
         this.atomBeta = Double.parseDouble(s[10]);
         this.atomType = s[11].charAt(0);
@@ -53,11 +53,11 @@ public class Atom {
         this.atomName = atomName;
     }
 
-    public char getAtomResiduum() {
+    public char getAtomResidue() {
         return atomResiduum;
     }
 
-    public void setAtomResiduum(char atomResiduum) {
+    public void setAtomResidue(char atomResiduum) {
         this.atomResiduum = atomResiduum;
     }
 
@@ -69,35 +69,35 @@ public class Atom {
         this.atomChain = atomChain;
     }
 
-    public int getAtomRedisuumIndex() {
-        return atomRedisuumIndex;
+    public int getAtomResidueIndex() {
+        return atomResidueIndex;
     }
 
-    public void setAtomRedisuumIndex(int atomRedisuumIndex) {
-        this.atomRedisuumIndex = atomRedisuumIndex;
+    public void setAtomResidueIndex(int atomResidueIndex) {
+        this.atomResidueIndex = atomResidueIndex;
     }
 
-    public double getCoordX() {
+    public float getCoordX() {
         return coordX;
     }
 
-    public void setCoordX(double coordX) {
+    public void setCoordX(float coordX) {
         this.coordX = coordX;
     }
 
-    public double getCoordY() {
+    public float getCoordY() {
         return coordY;
     }
 
-    public void setCoordY(double coordY) {
+    public void setCoordY(float coordY) {
         this.coordY = coordY;
     }
 
-    public double getCoordZ() {
+    public float getCoordZ() {
         return coordZ;
     }
 
-    public void setCoordZ(double coordZ) {
+    public void setCoordZ(float coordZ) {
         this.coordZ = coordZ;
     }
 
