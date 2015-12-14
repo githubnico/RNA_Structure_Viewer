@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.*;
 import javafx.scene.control.Menu;
@@ -16,6 +17,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by Deviltech on 13.12.2015.
@@ -26,6 +28,8 @@ public class UI extends Application{
     double originY;
 
     Group drawRoot;
+
+    PerspectiveCamera camera;
 
 
     @Override
@@ -46,7 +50,7 @@ public class UI extends Application{
 
         MenuItem open = new MenuItem("Open");
 
-        PerspectiveCamera camera = new PerspectiveCamera(true);
+        camera = new PerspectiveCamera(true);
 
         scene.setOnMousePressed(sceneOnMousePressedEventHandler);
         scene.setOnMouseDragged(sceneOnMouseDraggedEventHandler);
@@ -65,7 +69,6 @@ public class UI extends Application{
             // Show open file dialog
             File file = fileChooser.showOpenDialog(primaryStage);
             if (file != null) {
-                System.out.println(file);
                 try {
                    ArrayList<Atom> myAtoms =  new PDB_Reader().readInFile(file);
                    setAtomCoordinates(myAtoms, drawRoot);
@@ -128,7 +131,6 @@ public class UI extends Application{
                 currentResidue.addAtom(myAtoms.get(i));
                 i++;
             }
-            System.out.println("while over at" + myAtoms.get(i).getAtomID());
 
             // save completed residue
             myResidues.add(currentResidue);
@@ -150,6 +152,10 @@ public class UI extends Application{
         orangeMaterial.setDiffuseColor(Color.ORANGE);
         orangeMaterial.setSpecularColor(Color.YELLOW);
 
+        PhongMaterial blackMaterial = new PhongMaterial();
+        blackMaterial.setDiffuseColor(Color.BLACK);
+        blackMaterial.setSpecularColor(Color.DARKGRAY);
+
 
         for (Residue myResidue: myResidues) {
             MeshView currentBaseView = new MeshView(myResidue.generateBaseMesh());
@@ -159,9 +165,14 @@ public class UI extends Application{
             currentSugarView.setMaterial(orangeMaterial);
             currentSugarView.setDrawMode(DrawMode.FILL);
             Shape3D currentPhosphorus = myResidue.generatePhosphorusMesh();
-            myGroup.getChildren().addAll(currentBaseView, currentSugarView, currentPhosphorus);
+            Shape3D currentLine = myResidue.generateLine();
+            currentLine.setMaterial(blackMaterial);
+            myGroup.getChildren().addAll(currentBaseView, currentSugarView, currentPhosphorus, currentLine);
+
 
         }
+        // Center the Residues
+        centerGroup(myGroup);
 
 
     }
@@ -177,6 +188,36 @@ public class UI extends Application{
             case 'c': return new Pyrimidine();
             default: return null;
         }
+    }
+
+    /**
+     * Center Group elements
+     * @param g
+     */
+    private void centerGroup(Group g){
+        ObservableList<Node> nodes = g.getChildren();
+        double meanX = 0;
+        double meanY = 0;
+        double meanZ = 0;
+
+        for(Node currentNode: nodes){
+            meanX += currentNode.getTranslateX();
+            meanY += currentNode.getTranslateY();
+            meanZ += currentNode.getTranslateZ();
+        }
+        meanX = meanX/nodes.size();
+        meanY = meanY/nodes.size();
+        meanZ = meanZ/nodes.size();
+
+        for(Node currentNode: nodes){
+            currentNode.setTranslateX(currentNode.getTranslateX()- meanX);
+            currentNode.setTranslateY(currentNode.getTranslateY()- meanY);
+            currentNode.setTranslateZ(currentNode.getTranslateZ()- meanZ);
+        }
+
+
+
+
     }
 
     /**
