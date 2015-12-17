@@ -252,11 +252,8 @@ public class UI extends Application{
             meanZ += currentNode.getTranslateZ();
         }
         meanX = meanX/nodes.size();
-        System.out.println(meanX);
         meanY = meanY/nodes.size();
-        System.out.println(meanY);
         meanZ = meanZ/nodes.size();
-        System.out.println(meanZ);
 
 
         for(Node currentNode: g.getChildren()){
