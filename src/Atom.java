@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 /**
  * Created by Deviltech on 13.12.2015.
  */
@@ -23,17 +25,17 @@ public class Atom {
 
     // constructor using String[] of values
     public Atom(String[] s) {
-        this.atomID = Integer.parseInt(s[1]);
-        this.atomName = s[2];
-        this.atomResiduum = s[3].charAt(0);
-        this.atomChain = s[4].charAt(0);
-        this.atomResidueIndex = Integer.parseInt(s[5]);
-        this.coordX = Float.parseFloat(s[6]);
-        this.coordY = Float.parseFloat(s[7]);
-        this.coordZ = Float.parseFloat(s[8]);
+        this.atomID = Integer.parseInt(s[1].replaceAll("\\s+",""));
+        this.atomName = s[2].replaceAll("\\s+","");
+        this.atomResiduum = s[4].replaceAll("\\s+","").charAt(0);
+        this.atomChain = s[5].replaceAll("\\s+","").charAt(0);
+        this.atomResidueIndex = Integer.parseInt(s[6].replaceAll("\\s+",""));
+        this.coordX = Float.parseFloat(s[8]);
+        this.coordY = Float.parseFloat(s[9]);
+        this.coordZ = Float.parseFloat(s[10]);
         // no marker field (index 9)
-        this.atomBeta = Double.parseDouble(s[10]);
-        this.atomType = s[11].charAt(0);
+        this.atomBeta = Double.parseDouble(s[12]);
+        this.atomType = s[14].replaceAll("\\s+","").charAt(0);
     }
 
 

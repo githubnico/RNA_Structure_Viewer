@@ -5,6 +5,7 @@ import javafx.scene.*;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -17,19 +18,24 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Iterator;
+
 
 /**
  * Created by Deviltech on 13.12.2015.
  */
 public class UI extends Application{
 
+    // for rotation
     double originX;
     double originY;
 
+    // contains shapes
     Group drawRoot;
 
     PerspectiveCamera camera;
+
+    // indicates if shift key is pressed
+    private boolean isShiftPressed;
 
 
     @Override
@@ -42,28 +48,47 @@ public class UI extends Application{
         StackPane stackPane = new StackPane();
         Scene scene = new Scene(vBox, 800, 800);
 
-
         SubScene drawSubScene = new SubScene(drawRoot, 800, 700,true, SceneAntialiasing.BALANCED);
 
         MenuBar menuBar = new MenuBar();
         Menu menuFile = new Menu("File");
 
-        MenuItem open = new MenuItem("Open");
+        MenuItem openItem = new MenuItem("Open");
+
+        MenuItem clearItem = new MenuItem("Clear");
 
         camera = new PerspectiveCamera(true);
 
+        // for camera and rotation
         scene.setOnMousePressed(sceneOnMousePressedEventHandler);
         scene.setOnMouseDragged(sceneOnMouseDraggedEventHandler);
+
+        // scene key pressed
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.SHIFT) {
+                isShiftPressed = true;
+            }
+        });
+
+        // scene key released
+        scene.setOnKeyReleased(event -> {
+            if (event.getCode() == KeyCode.SHIFT) {
+                isShiftPressed = false;
+            }
+        });
 
 
 
         // Set open Menu handler
-        open.setOnAction((value) -> {
+        openItem.setOnAction((value) -> {
             FileChooser fileChooser = new FileChooser();
 
             // Set extension filter
+            ArrayList<String> filters = new ArrayList<String>();
+            filters.add("*.pdb");
+            filters.add("*.ent");
             FileChooser.ExtensionFilter extFilter =
-                    new FileChooser.ExtensionFilter("PDB files (*.pdb)", "*.pdb");
+                    new FileChooser.ExtensionFilter("PDB files (*.pdb), ENT files (*.ent)", filters);
             fileChooser.getExtensionFilters().add(extFilter);
 
             // Show open file dialog
@@ -80,8 +105,14 @@ public class UI extends Application{
             }
         );
 
+        // Set clearHandler
+        clearItem.setOnAction((value) -> {
+            drawRoot.getChildren().clear();
+        });
+
+
         // Prepace scene
-        menuFile.getItems().addAll(open);
+        menuFile.getItems().addAll(openItem, clearItem);
         menuBar.getMenus().addAll(menuFile);
 
         stackPane.getChildren().addAll(drawSubScene);
@@ -102,12 +133,11 @@ public class UI extends Application{
         primaryStage.setScene(scene);
         primaryStage.setTitle("3D Viewer");
 
-
-
-
         // show scene
         primaryStage.show();
     }
+
+
 
 
     /**
@@ -148,37 +178,53 @@ public class UI extends Application{
         redMaterial.setDiffuseColor(Color.DARKRED);
         redMaterial.setSpecularColor(Color.RED);
 
+        // material orange
         PhongMaterial orangeMaterial = new PhongMaterial();
         orangeMaterial.setDiffuseColor(Color.ORANGE);
         orangeMaterial.setSpecularColor(Color.YELLOW);
 
+        // material black
         PhongMaterial blackMaterial = new PhongMaterial();
         blackMaterial.setDiffuseColor(Color.BLACK);
         blackMaterial.setSpecularColor(Color.DARKGRAY);
 
 
+        // iterate over residues and draw them
         for (Residue myResidue: myResidues) {
+            // generate base
             MeshView currentBaseView = new MeshView(myResidue.generateBaseMesh());
             currentBaseView.setMaterial(redMaterial);
             currentBaseView.setDrawMode(DrawMode.FILL);
+            //generate sugar
             MeshView currentSugarView = new MeshView(myResidue.generateSugarMesh());
             currentSugarView.setMaterial(orangeMaterial);
             currentSugarView.setDrawMode(DrawMode.FILL);
-            Shape3D currentPhosphorus = myResidue.generatePhosphorusMesh();
+            Shape3D currentPhosphorus = new Sphere();
+            // handle phosphorus
+            if(myResidue.generatePhosphorusMesh(currentPhosphorus)){
+                myGroup.getChildren().add(currentPhosphorus);
+            }
+            // generate line
             Shape3D currentLine = myResidue.generateLine();
             currentLine.setMaterial(blackMaterial);
-            myGroup.getChildren().addAll(currentBaseView, currentSugarView, currentPhosphorus, currentLine);
+
+            myGroup.getChildren().addAll(currentBaseView, currentSugarView, currentLine);
 
 
         }
-        // Center the Residues
-        centerGroup(myGroup);
+
+        centerGroup(drawRoot);
+
 
 
     }
 
 
-
+    /**
+     * generate Residue according to char
+     * @param a
+     * @return
+     */
     private Residue constructResidueWithType(Atom a){
 
         switch (Character.toLowerCase(a.getAtomResidue())){
@@ -206,15 +252,18 @@ public class UI extends Application{
             meanZ += currentNode.getTranslateZ();
         }
         meanX = meanX/nodes.size();
+        System.out.println(meanX);
         meanY = meanY/nodes.size();
+        System.out.println(meanY);
         meanZ = meanZ/nodes.size();
+        System.out.println(meanZ);
 
-        for(Node currentNode: nodes){
+
+        for(Node currentNode: g.getChildren()){
             currentNode.setTranslateX(currentNode.getTranslateX()- meanX);
             currentNode.setTranslateY(currentNode.getTranslateY()- meanY);
             currentNode.setTranslateZ(currentNode.getTranslateZ()- meanZ);
         }
-
 
 
 
@@ -249,11 +298,14 @@ public class UI extends Application{
                     // calculate offset
                     double offsetX = t.getSceneX() - originX;
                     double offsetY = t.getSceneY() - originY;
-                    // follow mouse
-                    // move left and right
-                    drawRoot.getTransforms().add(new Rotate(offsetX, 0, 0, 0, Rotate.Y_AXIS));
-                    drawRoot.getTransforms().add(new Rotate(offsetY, 0, 0, 0, Rotate.Z_AXIS));
-
+                    if (isShiftPressed) {
+                        // zoom while shift pressed
+                        camera.setTranslateZ(camera.getTranslateZ() + (offsetX + offsetY) / 2);
+                    } else {
+                        // follow mouse
+                        drawRoot.getTransforms().add(new Rotate(offsetX, 0, 0, 0, Rotate.Y_AXIS));
+                        drawRoot.getTransforms().add(new Rotate(offsetY, 0, 0, 0, Rotate.Z_AXIS));
+                    }
 
                     originX += offsetX;
                     originY += offsetY;

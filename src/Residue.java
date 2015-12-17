@@ -30,7 +30,7 @@ public interface Residue {
      * Generate phosoporus shape
      * @return shape
      */
-    Shape3D generatePhosphorusMesh();
+    boolean generatePhosphorusMesh(Shape3D sphere);
 
     /**
      * Generate Line between sugar and base

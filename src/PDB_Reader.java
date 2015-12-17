@@ -6,6 +6,9 @@ import java.util.ArrayList;
  */
 public class PDB_Reader {
 
+    // separator indices for pdb standard
+    int indices[] = new int[]{0, 6, 11, 16, 17, 20, 22, 26, 27, 38, 46, 54, 60, 66, 76, 78};
+
     public ArrayList<Atom> readInFile(File filePath) throws FileNotFoundException {
 
         // Checks if file exists
@@ -21,7 +24,7 @@ public class PDB_Reader {
                 String line = null;
                 while ((line = input.readLine()) != null) {
                     if(line.startsWith("ATOM")){
-                        String[] currentValues = line.split("\\s+");
+                        String[] currentValues = splitByIndices(line, indices);
                         myAtoms.add(new Atom(currentValues));
                     }
 
@@ -38,11 +41,18 @@ public class PDB_Reader {
     }
 
 
-    public static void main(String[] args) throws FileNotFoundException {
-        File f = new File("C:/Users/Deviltech/Documents/MASTER/Advanced_Java/AUGC.pdb");
-
-            new PDB_Reader().readInFile(f);
-
+    /**
+     * Splits a string according given indices
+     * @param myString
+     * @param indices
+     * @return
+     */
+    public String[] splitByIndices(String myString, int[] indices){
+        String[] result = new String[indices.length-1];
+        for(int i= 0; i< indices.length-1; i++){
+            result[i] = myString.substring(indices[i], indices[i+1]);
+        }
+        return result;
     }
 
 }

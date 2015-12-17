@@ -6,6 +6,7 @@ import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -80,13 +81,16 @@ public class Pyrimidine implements Residue {
     }
 
     @Override
-    public Shape3D generatePhosphorusMesh() {
+    public boolean generatePhosphorusMesh(Shape3D sphere) {
         Atom phosphorus = myAtoms.get("P");
-        Sphere sphere = new Sphere(0.5);
-        sphere.setTranslateX(phosphorus.getCoordX());
-        sphere.setTranslateY(phosphorus.getCoordY());
-        sphere.setTranslateZ(phosphorus.getCoordZ());
-        return sphere;
+        if(phosphorus != null) {
+            sphere.setTranslateX(phosphorus.getCoordX());
+            sphere.setTranslateY(phosphorus.getCoordY());
+            sphere.setTranslateZ(phosphorus.getCoordZ());
+            return true;
+        } else {
+            return false;
+        }
     }
     @Override
     public Shape3D generateLine() {
