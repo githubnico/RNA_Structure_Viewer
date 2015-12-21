@@ -1,3 +1,7 @@
+package Viewer;
+
+import Residues.*;
+import Viewer.PDB_Reader;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -43,7 +47,7 @@ public class UI extends Application{
 
         drawRoot = new Group();
 
-        // UI elements
+        // Viewer.UI elements
         VBox vBox = new VBox();
         StackPane stackPane = new StackPane();
         Scene scene = new Scene(vBox, 800, 800);
@@ -141,18 +145,18 @@ public class UI extends Application{
 
 
     /**
-     * Sets the Atom Coordinates according ro bdp file Atoms
+     * Sets the Residues.Atom Coordinates according ro bdp file Atoms
      * @param myAtoms
      * @return
      */
     private void setAtomCoordinates(ArrayList<Atom> myAtoms, Group myGroup){
 
         // List of all Residues
-        ArrayList<Residue> myResidues = new ArrayList<>();
+        ArrayList<AResidue> myResidues = new ArrayList<>();
 
         // Current Residue Index for while loop
         int currentResidueIndex = myAtoms.get(0).getAtomResidueIndex();
-        Residue currentResidue = constructResidueWithType(myAtoms.get(0));
+        AResidue currentResidue = constructResidueWithType(myAtoms.get(0));
 
         for(int i = 0; i < myAtoms.size(); i++){
 
@@ -176,21 +180,21 @@ public class UI extends Application{
         // material blue
         PhongMaterial redMaterial = new PhongMaterial();
         redMaterial.setDiffuseColor(Color.DARKRED);
-        redMaterial.setSpecularColor(Color.RED);
+        //redMaterial.setSpecularColor(Color.RED);
 
         // material orange
         PhongMaterial orangeMaterial = new PhongMaterial();
         orangeMaterial.setDiffuseColor(Color.ORANGE);
-        orangeMaterial.setSpecularColor(Color.YELLOW);
+        //orangeMaterial.setSpecularColor(Color.YELLOW);
 
         // material black
         PhongMaterial blackMaterial = new PhongMaterial();
         blackMaterial.setDiffuseColor(Color.BLACK);
-        blackMaterial.setSpecularColor(Color.DARKGRAY);
+        //blackMaterial.setSpecularColor(Color.DARKGRAY);
 
 
         // iterate over residues and draw them
-        for (Residue myResidue: myResidues) {
+        for (AResidue myResidue: myResidues) {
             // generate base
             MeshView currentBaseView = new MeshView(myResidue.generateBaseMesh());
             currentBaseView.setMaterial(redMaterial);
@@ -199,7 +203,7 @@ public class UI extends Application{
             MeshView currentSugarView = new MeshView(myResidue.generateSugarMesh());
             currentSugarView.setMaterial(orangeMaterial);
             currentSugarView.setDrawMode(DrawMode.FILL);
-            Shape3D currentPhosphorus = new Sphere();
+            Shape3D currentPhosphorus = new Sphere(2);
             // handle phosphorus
             if(myResidue.generatePhosphorusMesh(currentPhosphorus)){
                 myGroup.getChildren().add(currentPhosphorus);
@@ -225,13 +229,13 @@ public class UI extends Application{
      * @param a
      * @return
      */
-    private Residue constructResidueWithType(Atom a){
+    private AResidue constructResidueWithType(Atom a){
 
         switch (Character.toLowerCase(a.getAtomResidue())){
-            case 'a': return new Purine();
-            case 'u': return new Pyrimidine();
-            case 'g': return new Purine();
-            case 'c': return new Pyrimidine();
+            case 'a': return new Adenine();
+            case 'u': return new Uracil();
+            case 'g': return new Guanine();
+            case 'c': return new Cytosine();
             default: return null;
         }
     }

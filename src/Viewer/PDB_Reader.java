@@ -1,3 +1,8 @@
+package Viewer;
+
+import Residues.Atom;
+import Viewer.myLabels;
+
 import java.io.*;
 import java.util.ArrayList;
 

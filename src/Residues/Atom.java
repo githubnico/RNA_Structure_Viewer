@@ -1,3 +1,5 @@
+package Residues;
+
 import java.util.Arrays;
 
 /**
