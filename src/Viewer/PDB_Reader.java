@@ -1,7 +1,6 @@
 package Viewer;
 
 import Residues.Atom;
-import Viewer.myLabels;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -11,14 +10,13 @@ import java.util.ArrayList;
  */
 public class PDB_Reader {
 
-    // separator indices for pdb standard
-    int indices[] = new int[]{0, 6, 11, 16, 17, 20, 22, 26, 27, 38, 46, 54, 60, 66, 76, 78};
+
 
     public ArrayList<Atom> readInFile(File filePath) throws FileNotFoundException {
 
         // Checks if file exists
         if (!filePath.exists()) {
-            throw new FileNotFoundException(myLabels.FILE_NOT_FOUND + filePath);
+            throw new FileNotFoundException(myValues.FILE_NOT_FOUND + filePath);
         }
 
         ArrayList<Atom> myAtoms = new ArrayList<>();
@@ -29,7 +27,7 @@ public class PDB_Reader {
                 String line = null;
                 while ((line = input.readLine()) != null) {
                     if(line.startsWith("ATOM")){
-                        String[] currentValues = splitByIndices(line, indices);
+                        String[] currentValues = splitByIndices(line, myValues.PDB_INDICES);
                         myAtoms.add(new Atom(currentValues));
                     }
 

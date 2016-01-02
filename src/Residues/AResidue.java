@@ -1,7 +1,10 @@
 package Residues;
 
+import Viewer.myValues;
 import javafx.geometry.Point3D;
+import javafx.scene.control.Tooltip;
 import javafx.scene.shape.Cylinder;
+import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Shape3D;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
@@ -15,55 +18,6 @@ import java.util.HashMap;
 public abstract class AResidue {
 
 
-    // names for structures
-    String[] pyrimidineLine = {"N1", "C1\'"};
-    String[] purineLine = {"N9", "C1\'"};
-
-    String[] purineBaseNames = {"C4", "C5", "C6","N1", "C2", "N3", "N9", "C8", "N7"};
-    String[] pyrimidineBaseNames = {"N1", "C2", "N3", "C4", "C5", "C6"};
-    String[] sugarNames = {"C1\'", "C2\'", "C3\'", "C4\'", "O4\'"};
-
-    int purineBaseMeshFaces[] = {
-            0,0,    1,0,    5,0, // front
-            1,0,    2,0,    5,0,
-            2,0,    3,0,    5,0,
-            3,0,    4,0,    5,0,
-            0,0,    6,0,    7,0,
-            0,0,    7,0,    8,0,
-            0,0,    8,0,    1,0,
-            0,0,    5,0,    1,0, // back
-            1,0,    5,0,    2,0,
-            2,0,    5,0,    3,0,
-            3,0,    5,0,    4,0,
-            0,0,    7,0,    6,0,
-            0,0,    8,0,    7,0,
-            0,0,    1,0,    8,0
-
-    };
-
-
-
-    int pyrimidineBaseMeshFaces[] = {
-            0,0,    1,0,    5,0,// front
-            1,0,    2,0,    5,0,
-            2,0,    3,0,    5,0,
-            3,0,    4,0,    5,0,
-            0,1,    5,0,    1,0,//back
-            1,0,    5,0,    2,0,
-            2,0,    5,0,    3,0,
-            3,0,    5,0,    4,0
-    };
-
-    int sugarMeshFaces[] = {
-            0,0,    1,0,    4,0, //front
-            1,0,    2,0,    4,0,
-            2,0,    3,0,    4,0,
-            0,0,    4,0,    1,0,//back
-            1,0,    4,0,    2,0,
-            2,0,    4,0,    3,0
-    };
-
-
     //contains all atoms of residue
     HashMap<String, Atom> myAtoms;
 
@@ -72,20 +26,23 @@ public abstract class AResidue {
 
     /**
      * Generate the sugar TriangleMesh according to Residue Type
+     *
      * @return mesh
      */
-    abstract public TriangleMesh generateSugarMesh();
+    abstract public MeshView generateSugarMesh();
 
 
     /**
      * Generate the base TriangleMesh according to Residue Type
+     *
      * @return mesh
      */
-    abstract public TriangleMesh generateBaseMesh();
+    abstract public MeshView generateBaseMesh();
 
 
     /**
      * Generate Line between sugar and base
+     *
      * @return
      */
     abstract public Shape3D generateLine();
@@ -94,23 +51,35 @@ public abstract class AResidue {
 
     /**
      * Add a single Residues.Atom to the Residues.AResidue
+     *
      * @param a
      */
-    public void addAtom(Atom a){
+    public void addAtom(Atom a) {
         myAtoms.put(a.getAtomName(), a);
+    }
+
+    /**
+     * Get the Atom according to it's name
+     * @param atomName
+     * @return
+     */
+    public Atom getAtom(String atomName) {
+            return myAtoms.get(atomName);
     }
 
 
     /**
      * Generate phosoporus shape
+     *
      * @return shape
      */
-    public boolean generatePhosphorusMesh(Shape3D sphere){
+    public boolean generatePhosphorusMesh(Shape3D sphere) {
         Atom phosphorus = myAtoms.get("P");
-        if(phosphorus != null) {
+        if (phosphorus != null) {
             sphere.setTranslateX(phosphorus.getCoordX());
             sphere.setTranslateY(phosphorus.getCoordY());
             sphere.setTranslateZ(phosphorus.getCoordZ());
+            sphere.setMaterial(myValues.MATERIAL_DARK_GREEN);
             return true;
         } else {
             return false;
@@ -120,14 +89,15 @@ public abstract class AResidue {
 
     /**
      * general TriangleMesh generation
+     *
      * @param atomNames
      * @param faces
      * @return
      */
-    public TriangleMesh generateGeneralMesh(String[] atomNames, int faces[]){
+    public MeshView generateGeneralMesh(String[] atomNames, int faces[]) {
         TriangleMesh mesh = new TriangleMesh();
 
-        for(String currentName: atomNames){
+        for (String currentName : atomNames) {
             Atom currentAtom = myAtoms.get(currentName);
             float points[] = {currentAtom.getCoordX(), currentAtom.getCoordY(), currentAtom.getCoordZ()};
             mesh.getPoints().addAll(points);
@@ -135,16 +105,24 @@ public abstract class AResidue {
         mesh.getTexCoords().addAll(0.0f, 1.0f, 0.5f, 0.5f, 0.5f, 1.0f);
         mesh.getFaces().addAll(faces);
 
-        return mesh;
+        MeshView myMeshView = new MeshView(mesh);
+
+        Atom firstAtom = myAtoms.get(atomNames[0]);
+        Tooltip myToolTip = new Tooltip(firstAtom.getAtomResidue()+Integer.toString(firstAtom.getAtomResidueIndex()));
+        Tooltip.install(myMeshView, myToolTip);
+
+        return  myMeshView;
     }
 
     /**
      * generate a Line (cylinder) between two Atoms
+     *
      * @param firstAtom
      * @param secondAtom
+     * @param width
      * @return
      */
-    public Shape3D generateLine(Atom firstAtom, Atom secondAtom){
+    public Shape3D generateLine(Atom firstAtom, Atom secondAtom, double width) {
         Point3D origin = new Point3D(firstAtom.getCoordX(), firstAtom.getCoordY(), firstAtom.getCoordZ());
         Point3D target = new Point3D(secondAtom.getCoordX(), secondAtom.getCoordY(), secondAtom.getCoordZ());
         Point3D yAxis = new Point3D(0, 1, 0);
@@ -158,13 +136,12 @@ public abstract class AResidue {
         double angle = Math.acos(diff.normalize().dotProduct(yAxis));
         Rotate rotateAroundCenter = new Rotate(-Math.toDegrees(angle), axisOfRotation);
 
-        Cylinder line = new Cylinder(0.03, height);
+        Cylinder line = new Cylinder(width, height);
 
         line.getTransforms().addAll(moveToMidpoint, rotateAroundCenter);
 
         return line;
     }
-
 
 
 }

@@ -1,8 +1,8 @@
 package Residues;
 
-import Residues.AResidue;
+import Viewer.myValues;
+import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Shape3D;
-import javafx.scene.shape.TriangleMesh;
 
 import java.util.HashMap;
 
@@ -17,19 +17,19 @@ public class Cytosine extends AResidue {
 
 
     @Override
-    public TriangleMesh generateSugarMesh() {
-        return generateGeneralMesh(sugarNames, sugarMeshFaces);
+    public MeshView generateSugarMesh() {
+        return generateGeneralMesh( myValues.RESIDUE_SUGAR_NAMES,  myValues.RESIDUE_SUGAR_FACES);
     }
 
     @Override
-    public TriangleMesh generateBaseMesh() {
-        return generateGeneralMesh(pyrimidineBaseNames, pyrimidineBaseMeshFaces);
+    public MeshView generateBaseMesh() {
+        return generateGeneralMesh( myValues.RESIDUE_PYRIMIDINE_BASE_NAMES,  myValues.RESIDUE_PYRIMIDINE_BASE_FACES);
 
     }
 
 
     @Override
     public Shape3D generateLine() {
-        return generateLine(myAtoms.get(pyrimidineLine[0]), myAtoms.get(pyrimidineLine[1]));
+        return generateLine(myAtoms.get( myValues.RESIDUE_PYRIMIDINE_LINE[0]), myAtoms.get( myValues.RESIDUE_PYRIMIDINE_LINE[1]), myValues.LINE_WIDTH_SMALL);
     }
 }
