@@ -1,6 +1,6 @@
-package Residues;
+package Data;
 
-import Viewer.myValues;
+import Viewer.MoleculeMesh;
 import javafx.geometry.Point3D;
 import javafx.scene.control.Tooltip;
 import javafx.scene.shape.Cylinder;
@@ -47,6 +47,19 @@ public abstract class AResidue {
      */
     abstract public Shape3D generateLine();
 
+    /**
+     * Adds the current Residue to its Structure
+     * @param myStructure
+     */
+    abstract public void addToStructure(Structure myStructure);
+
+    /**
+     * Adds the Shape3D of the current Residue to its MoleculeMesh
+     * @param myMoleculeMesh
+     * @param myShape3D
+     */
+    abstract public void addToMoleculeMesh(MoleculeMesh myMoleculeMesh, Shape3D myShape3D );
+
     // END abstract
 
     /**
@@ -79,7 +92,6 @@ public abstract class AResidue {
             sphere.setTranslateX(phosphorus.getCoordX());
             sphere.setTranslateY(phosphorus.getCoordY());
             sphere.setTranslateZ(phosphorus.getCoordZ());
-            sphere.setMaterial(myValues.MATERIAL_DARK_GREEN);
             return true;
         } else {
             return false;
@@ -113,6 +125,7 @@ public abstract class AResidue {
 
         return  myMeshView;
     }
+
 
     /**
      * generate a Line (cylinder) between two Atoms

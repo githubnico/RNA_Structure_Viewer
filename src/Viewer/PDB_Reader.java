@@ -1,6 +1,7 @@
 package Viewer;
 
-import Residues.Atom;
+import Data.Atom;
+import Data.myValues;
 
 import java.io.*;
 import java.util.ArrayList;

@@ -1,6 +1,4 @@
-package Residues;
-
-import java.util.Arrays;
+package Data;
 
 /**
  * Created by Deviltech on 13.12.2015.

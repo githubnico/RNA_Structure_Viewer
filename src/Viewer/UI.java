@@ -1,19 +1,21 @@
 package Viewer;
 
-import Residues.*;
+import Data.*;
 import javafx.application.Application;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.*;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.*;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
@@ -30,6 +32,11 @@ import java.util.ArrayList;
  */
 public class UI extends Application {
 
+
+    //Contains all Residues to be drawn
+    Structure myStructure;
+    MoleculeMesh myMolecleMesh;
+
     // for rotation
     double originX;
     double originY;
@@ -43,10 +50,14 @@ public class UI extends Application {
     private boolean isShiftPressed;
 
 
+
     @Override
     public void start(Stage primaryStage) throws Exception {
 
+
         drawRoot = new Group();
+        myStructure = new Structure();
+        myMolecleMesh = new MoleculeMesh();
 
         // Viewer.UI elements
         VBox vBox = new VBox();
@@ -59,12 +70,23 @@ public class UI extends Application {
         drawSubScene.widthProperty().bind(scene.widthProperty());
 
 
+        // Menubars
         MenuBar menuBar = new MenuBar();
-        Menu menuFile = new Menu("File");
+        Menu menuFile = new Menu(myValues.MENU_FILE);
+        Menu menuView = new Menu(myValues.MENU_VIEW);
+        Menu menuColoring = new Menu(myValues.MENU_COLORING);
 
-        MenuItem openItem = new MenuItem("Open");
+        // Menuitems
+        MenuItem openItem = new MenuItem(myValues.MENU_OPEN);
+        MenuItem clearItem = new MenuItem(myValues.MENU_CLEAR);
 
-        MenuItem clearItem = new MenuItem("Clear");
+        // Submenuitems
+        MenuItem coloringAGCUItem = new MenuItem(myValues.MENU_AGCU);
+        MenuItem coloringPurinePyrimidineItem = new MenuItem(myValues.MENU_PURINE_PYRIMIDINE);
+        MenuItem coloringPairedItem = new MenuItem(myValues.MENU_PAIRED);
+
+        // Checkmenuitem
+        CheckMenuItem greenPhosphorus = new CheckMenuItem(myValues.MENU_GREEN_PHOSPHORUS);
 
         camera = new PerspectiveCamera(true);
 
@@ -103,6 +125,7 @@ public class UI extends Application {
                     File file = fileChooser.showOpenDialog(primaryStage);
                     if (file != null) {
                         try {
+                            text.setText(file.getName());
                             ArrayList<Atom> myAtoms = new PDB_Reader().readInFile(file);
                             setAtomCoordinates(myAtoms, drawRoot);
                             text.setText(file.getName());
@@ -117,13 +140,59 @@ public class UI extends Application {
         // Set clearHandler
         clearItem.setOnAction((value) -> {
             drawRoot.getChildren().clear();
+            myStructure = new Structure();
+            myMolecleMesh = new MoleculeMesh();
             text.setText(myValues.NO_FILE_SELECTED);
+        });
+
+        // Set color Handlers
+        coloringAGCUItem.setOnAction((value) ->{
+            colorAllShape3D(myMolecleMesh.getMyAdenines(), myValues.MATERIAL_BLUE);
+            colorAllShape3D(myMolecleMesh.getMyGuanines(), myValues.MATERIAL_GREEN);
+            colorAllShape3D(myMolecleMesh.getMyCytosines(), myValues.MATERIAL_RED);
+            colorAllShape3D(myMolecleMesh.getMyUracils(), myValues.MATERIAL_YELLOW);
+        });
+
+        coloringPurinePyrimidineItem.setOnAction((value) ->{
+            colorAllShape3D(myMolecleMesh.getMyAdenines(), myValues.MATERIAL_BLUE);
+            colorAllShape3D(myMolecleMesh.getMyGuanines(), myValues.MATERIAL_DARK_BLUE);
+            colorAllShape3D(myMolecleMesh.getMyCytosines(), myValues.MATERIAL_RED);
+            colorAllShape3D(myMolecleMesh.getMyUracils(), myValues.MATERIAL_DARK_RED);
+        });
+
+        // TODO right coloring
+        coloringPairedItem.setOnAction((value) ->{
+            colorAllShape3D(myMolecleMesh.getMyAdenines(), myValues.MATERIAL_DARK_RED);
+            colorAllShape3D(myMolecleMesh.getMyGuanines(), myValues.MATERIAL_DARK_RED);
+            colorAllShape3D(myMolecleMesh.getMyCytosines(), myValues.MATERIAL_DARK_RED);
+            colorAllShape3D(myMolecleMesh.getMyUracils(), myValues.MATERIAL_DARK_RED);
+        });
+
+        // Handle Checkmenuitem
+        greenPhosphorus.setSelected(true);
+        greenPhosphorus.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            public void changed(ObservableValue ov,
+                                Boolean old_val, Boolean new_val) {
+                if(new_val){
+                    colorAllShape3D(myMolecleMesh.getMyPhosporus(), myValues.MATERIAL_SEA_GREEN);
+                    colorAllShape3D(myMolecleMesh.getMyPhosphorusLines(), myValues.MATERIAL_SEA_GREEN);
+                } else {
+                    colorAllShape3D(myMolecleMesh.getMyPhosporus(), myValues.MATERIAL_GRAY);
+                    colorAllShape3D(myMolecleMesh.getMyPhosphorusLines(), myValues.MATERIAL_GRAY);
+                }
+            }
         });
 
 
         // Prepace scene
-        menuFile.getItems().addAll(openItem, clearItem);
-        menuBar.getMenus().addAll(menuFile);
+
+        menuColoring.getItems().addAll(greenPhosphorus, new SeparatorMenuItem(), coloringAGCUItem, coloringPurinePyrimidineItem, coloringPairedItem);
+        menuFile.getItems().addAll(openItem);
+        menuView.getItems().addAll(clearItem, menuColoring);
+
+        menuBar.getMenus().addAll(menuFile, menuView);
+
+
 
         stackPane.getChildren().addAll(drawSubScene, text);
         stackPane.setAlignment(text, Pos.BOTTOM_LEFT);
@@ -159,8 +228,7 @@ public class UI extends Application {
      */
     private void setAtomCoordinates(ArrayList<Atom> myAtoms, Group myGroup) {
 
-        // List of all Residues
-        ArrayList<AResidue> myResidues = new ArrayList<>();
+
 
         // Current Residue Index for while loop
         int currentResidueIndex = myAtoms.get(0).getAtomResidueIndex();
@@ -175,7 +243,7 @@ public class UI extends Application {
             }
 
             // save completed residue
-            myResidues.add(currentResidue);
+            currentResidue.addToStructure(myStructure);
 
             if (i < myAtoms.size()) {
                 // generate new Residue based on the Residue type
@@ -191,7 +259,7 @@ public class UI extends Application {
         Atom oldAtom = new Atom();
 
         // iterate over residues and draw them
-        for (AResidue myResidue : myResidues) {
+        for (AResidue myResidue : myStructure.getMyResidues()) {
 
             // draw lines between phosphorus
             if (residueIndex == -1 && (myResidue.getAtom("P") != null)) {
@@ -204,8 +272,9 @@ public class UI extends Application {
                 if ((newAtom != null) && residueIndex == newAtom.getAtomResidueIndex() - 1) {
                     // draw line, if sequencial
                     Shape3D line = myResidue.generateLine(oldAtom, newAtom, myValues.LINE_WIDTH_MEDIUM);
-                    line.setMaterial(myValues.MATERIAL_DARK_GREEN);
+                    line.setMaterial(myValues.MATERIAL_SEA_GREEN);
                     myGroup.getChildren().add(line);
+                    myMolecleMesh.addPhosphorusLine(line);
                     oldAtom = newAtom;
                     residueIndex = newAtom.getAtomResidueIndex();
                 } else {
@@ -218,23 +287,44 @@ public class UI extends Application {
             }
             // generate base
             MeshView currentBaseView = myResidue.generateBaseMesh();
-            currentBaseView.setMaterial(myValues.MATERIAL_RED);
+            currentBaseView.setMaterial(myValues.MATERIAL_DARK_RED);
             currentBaseView.setDrawMode(DrawMode.FILL);
+            myResidue.addToMoleculeMesh(myMolecleMesh, currentBaseView);
             //generate sugar
             MeshView currentSugarView = myResidue.generateSugarMesh();
             currentSugarView.setMaterial(myValues.MATERIAL_ORANGE);
             currentSugarView.setDrawMode(DrawMode.FILL);
-            Shape3D currentPhosphorus = new Sphere(2);
+            myMolecleMesh.addSugar(currentSugarView);
             // handle phosphorus
+            Shape3D currentPhosphorus = new Sphere(myValues.PHOSPHORUS_WIDTH);
             if (myResidue.generatePhosphorusMesh(currentPhosphorus)) {
+                currentPhosphorus.setMaterial(myValues.MATERIAL_SEA_GREEN);
                 myGroup.getChildren().add(currentPhosphorus);
+                myMolecleMesh.addPhosphorus(currentPhosphorus);
             }
-            // generate line
-            Shape3D currentLine = myResidue.generateLine();
-            currentLine.setMaterial(myValues.MATERIAL_BLACK);
+            // generate line between sugar and base
+            Shape3D baseSugarLine = myResidue.generateLine();
+            baseSugarLine.setMaterial(myValues.MATERIAL_BLACK);
+            myMolecleMesh.addLine(baseSugarLine);
 
-            myGroup.getChildren().addAll(currentBaseView, currentSugarView, currentLine);
+            // generate line to phosphorus
+            // P, O5', C5', C4'
+            try {
+                Shape3D line1 = myResidue.generateLine(myResidue.getAtom("P"), myResidue.getAtom("O5'"), myValues.LINE_WIDTH_SMALL);
+                Shape3D line2 = myResidue.generateLine(myResidue.getAtom("O5'"), myResidue.getAtom("C5'"), myValues.LINE_WIDTH_SMALL);
+                Shape3D line3 = myResidue.generateLine(myResidue.getAtom("C5'"), myResidue.getAtom("C4'"), myValues.LINE_WIDTH_SMALL);
+                line1.setMaterial(myValues.MATERIAL_BLACK);
+                line2.setMaterial(myValues.MATERIAL_BLACK);
+                line3.setMaterial(myValues.MATERIAL_BLACK);
+                myGroup.getChildren().addAll(line1, line2, line3);
+                myMolecleMesh.addLine(line1);
+                myMolecleMesh.addLine(line2);
+                myMolecleMesh.addLine(line3);
+            } catch(Exception e){
 
+            };
+
+            myGroup.getChildren().addAll(currentBaseView, currentSugarView, baseSugarLine);
 
         }
 
@@ -293,6 +383,17 @@ public class UI extends Application {
         }
     }
 
+    /**
+     * Color all Shapes with given Phongmaterial
+     * @param myShape3D
+     * @param myMaterial
+     */
+    private void colorAllShape3D(ArrayList<Shape3D> myShape3D, PhongMaterial myMaterial){
+        for(Shape3D currentShape3D : myShape3D){
+            currentShape3D.setMaterial(myMaterial);
+        }
+    }
+
 
     /**
      * Eventhandler for mouse pressed for circle drag
@@ -306,7 +407,6 @@ public class UI extends Application {
                     originX = t.getSceneX();
                     originY = t.getSceneY();
                 }
-
 
             };
 
@@ -333,11 +433,8 @@ public class UI extends Application {
                     originX += offsetX;
                     originY += offsetY;
 
-
                 }
 
-
             };
-
 
 }

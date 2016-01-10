@@ -1,6 +1,6 @@
-package Residues;
+package Data;
 
-import Viewer.myValues;
+import Viewer.MoleculeMesh;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Shape3D;
 
@@ -27,9 +27,18 @@ public class Uracil extends AResidue {
 
     }
 
-
     @Override
     public Shape3D generateLine() {
         return generateLine(myAtoms.get( myValues.RESIDUE_PYRIMIDINE_LINE[0]), myAtoms.get( myValues.RESIDUE_PYRIMIDINE_LINE[1]), myValues.LINE_WIDTH_SMALL);
+    }
+
+    @Override
+    public void addToStructure(Structure myStructure) {
+        myStructure.addResidue(this);
+    }
+
+    @Override
+    public void addToMoleculeMesh(MoleculeMesh myMoleculeMesh, Shape3D myShape3D) {
+        myMoleculeMesh.addUracil(myShape3D);
     }
 }
