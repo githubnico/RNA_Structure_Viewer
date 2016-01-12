@@ -49,6 +49,9 @@ public class UI extends Application {
     // indicates if shift key is pressed
     private boolean isShiftPressed;
 
+    // for coloring
+    private boolean isGreenPhosphorus;
+
 
 
     @Override
@@ -58,6 +61,8 @@ public class UI extends Application {
         drawRoot = new Group();
         myStructure = new Structure();
         myMolecleMesh = new MoleculeMesh();
+
+        isGreenPhosphorus = true;
 
         // Viewer.UI elements
         VBox vBox = new VBox();
@@ -169,7 +174,7 @@ public class UI extends Application {
         });
 
         // Handle Checkmenuitem
-        greenPhosphorus.setSelected(true);
+        greenPhosphorus.setSelected(isGreenPhosphorus);
         greenPhosphorus.selectedProperty().addListener(new ChangeListener<Boolean>() {
             public void changed(ObservableValue ov,
                                 Boolean old_val, Boolean new_val) {
@@ -180,6 +185,7 @@ public class UI extends Application {
                     colorAllShape3D(myMolecleMesh.getMyPhosporus(), myValues.MATERIAL_GRAY);
                     colorAllShape3D(myMolecleMesh.getMyPhosphorusLines(), myValues.MATERIAL_GRAY);
                 }
+                isGreenPhosphorus = new_val;
             }
         });
 
@@ -272,7 +278,11 @@ public class UI extends Application {
                 if ((newAtom != null) && residueIndex == newAtom.getAtomResidueIndex() - 1) {
                     // draw line, if sequencial
                     Shape3D line = myResidue.generateLine(oldAtom, newAtom, myValues.LINE_WIDTH_MEDIUM);
-                    line.setMaterial(myValues.MATERIAL_SEA_GREEN);
+                    if(isGreenPhosphorus){
+                        line.setMaterial(myValues.MATERIAL_SEA_GREEN);
+                    } else {
+                        line.setMaterial(myValues.MATERIAL_GRAY);
+                    }
                     myGroup.getChildren().add(line);
                     myMolecleMesh.addPhosphorusLine(line);
                     oldAtom = newAtom;
@@ -298,7 +308,11 @@ public class UI extends Application {
             // handle phosphorus
             Shape3D currentPhosphorus = new Sphere(myValues.PHOSPHORUS_WIDTH);
             if (myResidue.generatePhosphorusMesh(currentPhosphorus)) {
-                currentPhosphorus.setMaterial(myValues.MATERIAL_SEA_GREEN);
+                if(isGreenPhosphorus){
+                    currentPhosphorus.setMaterial(myValues.MATERIAL_SEA_GREEN);
+                } else {
+                    currentPhosphorus.setMaterial(myValues.MATERIAL_GRAY);
+                }
                 myGroup.getChildren().add(currentPhosphorus);
                 myMolecleMesh.addPhosphorus(currentPhosphorus);
             }
